@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bridgewell Table · Template</title>
+<style>
+:root{
+  --font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  /* Per-module accent — overridden at runtime from TABLE.theme.accent (see boot()) */
+  --accent:#4F81BD;
+  --accent-hover:#3a6da8;
+  --accent-focus:#7ab0e0;
+  --accent-soft:rgba(79,129,189,.07);
+  --accent-soft2:rgba(79,129,189,.13);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#0d1424}
+body{font-family:var(--font-sans);display:flex;align-items:flex-start;justify-content:center;min-height:100vh}
+#app{width:100%;max-width:920px;min-height:580px;font-family:var(--font-sans);background:#1a2744;box-shadow:0 10px 40px rgba(0,0,0,.5);overflow:hidden;border-radius:4px}
+.screen{display:none;width:100%;min-height:580px}
+.screen.active{display:flex}
+
+/* AVERY SCREENS */
+.avery-screen{flex-direction:column;align-items:center;justify-content:center;padding:2.5rem 1.5rem;text-align:center;background:#1a2744;min-height:580px}
+.avery-photo{width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid var(--accent);margin:0 auto 1rem;display:block}
+.avery-photo-ph{width:90px;height:90px;border-radius:50%;background:#2d3f6e;border:3px solid var(--accent);margin:0 auto 1rem;display:flex;align-items:center;justify-content:center;color:#a0b4cc;font-size:.7rem;text-align:center}
+.avery-label{color:#a0b4cc;font-size:.75rem;letter-spacing:.06em;margin-bottom:.2rem}
+.avery-title{color:#fff;font-size:1.15rem;font-weight:600;margin-bottom:.2rem}
+.avery-sub{color:#7a90b0;font-size:.8rem;margin-bottom:1.2rem}
+.avery-quote{color:#d0dcea;font-size:.9rem;line-height:1.8;max-width:500px;margin:0 auto .9rem;font-style:italic}
+.avery-body{color:#b0c4d8;font-size:.83rem;line-height:1.75;max-width:500px;margin:0 auto 1.5rem}
+.btn-primary{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:.65rem 1.8rem;font-size:.9rem;cursor:pointer;font-weight:500;transition:background .15s}
+.btn-primary:hover,.btn-primary:focus{background:var(--accent-hover);outline:2px solid var(--accent-focus);outline-offset:2px}
+
+/* AUDIO BAR */
+.audio-wrap{display:flex;align-items:center;gap:.6rem;max-width:360px;margin:0 auto 1.1rem}
+.audio-play{width:32px;height:32px;border-radius:50%;background:var(--accent);border:2px solid transparent;cursor:pointer;color:#fff;font-size:.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s}
+.audio-play:hover,.audio-play:focus{background:var(--accent-hover);outline:2px solid var(--accent-focus);outline-offset:2px}
+.audio-track{flex:1;height:4px;background:rgba(255,255,255,.15);border-radius:2px;cursor:pointer;position:relative}
+.audio-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width .25s linear}
+.audio-time{color:#7a90b0;font-size:.7rem;min-width:34px;text-align:right}
+.audio-error{color:#e07a7a;font-size:.72rem;margin-top:.3rem;display:none}
+.transcript-btn{background:none;border:1px solid #3a5070;color:#7a90b0;border-radius:6px;padding:.3rem .7rem;font-size:.72rem;cursor:pointer;margin-top:.4rem}
+.transcript-btn:hover,.transcript-btn:focus{border-color:var(--accent);color:#a0c0e0;outline:2px solid var(--accent);outline-offset:2px}
+.transcript-box{background:#0d1a30;border:1px solid #2d3f6e;border-radius:6px;padding:.75rem 1rem;font-size:.78rem;color:#b0c4d8;line-height:1.65;max-width:500px;margin:.5rem auto 0;text-align:left;display:none}
+
+/* HUB */
+.hub-screen{flex-direction:column;align-items:center;justify-content:center;padding:1.8rem 1rem;background:#1a2744;min-height:580px;position:relative}
+.hub-title{color:#fff;font-size:1rem;font-weight:600;margin-bottom:.25rem}
+.hub-sub{color:#7a90b0;font-size:.78rem;margin-bottom:.9rem;text-align:center}
+.prog-wrap{width:100%;max-width:500px;height:5px;background:#2d3f6e;border-radius:3px;margin-bottom:.35rem}
+.prog-fill{height:100%;border-radius:3px;background:var(--accent);transition:width .4s}
+.prog-label{color:#7a90b0;font-size:.72rem;margin-bottom:1.4rem}
+.char-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.7rem;width:100%;max-width:640px}
+@media(max-width:600px){.char-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:380px){.char-grid{grid-template-columns:repeat(2,1fr)}}
+.char-card{border-radius:10px;padding:.85rem .5rem;text-align:center;cursor:pointer;transition:transform .15s,box-shadow .15s;border:2px solid transparent;position:relative}
+.char-card:hover:not(.done),.char-card:focus:not(.done){transform:translateY(-3px);box-shadow:0 4px 12px rgba(0,0,0,.4);outline:none}
+.char-card:focus:not(.done){outline:2px solid #fff;outline-offset:2px}
+.char-card.done{opacity:.5;cursor:default}
+.char-avatar{width:48px;height:48px;border-radius:50%;margin:0 auto .45rem;object-fit:cover;border:2px solid rgba(255,255,255,.25);display:block}
+.char-avatar-ph{width:48px;height:48px;border-radius:50%;margin:0 auto .45rem;display:flex;align-items:center;justify-content:center;font-weight:600;color:#fff;font-size:.85rem;border:2px solid rgba(255,255,255,.2)}
+.char-name{font-size:.74rem;font-weight:600;color:#fff}
+.char-role{font-size:.63rem;color:rgba(255,255,255,.5);margin-top:.1rem;line-height:1.3}
+.done-badge{position:absolute;top:5px;right:5px;width:16px;height:16px;border-radius:50%;background:var(--accent);color:#fff;font-size:.6rem;display:flex;align-items:center;justify-content:center}
+.reset-btn{margin-top:1.5rem;background:none;border:1px solid #3a5070;color:#7a90b0;border-radius:6px;padding:.4rem 1rem;font-size:.75rem;cursor:pointer}
+.reset-btn:hover,.reset-btn:focus{border-color:var(--accent);color:#a0c0e0;outline:2px solid var(--accent);outline-offset:2px}
+.debrief-btn{position:absolute;right:1.1rem;bottom:1.1rem;background:#2d3f6e;color:#fff;border:1px solid #43578a;border-radius:8px;padding:.5rem 1rem;font-size:.78rem;font-weight:500;cursor:pointer}
+.debrief-btn:hover{background:#37487a}
+
+/* SPLIT SCREENS */
+.split-screen{flex-direction:row;min-height:580px}
+@media(max-width:700px){.split-screen{flex-direction:column}}
+.s-left{flex:0 0 48%;position:relative;overflow:hidden;background:#0d1520;min-height:280px}
+@media(max-width:700px){.s-left{flex:0 0 220px}}
+.s-left-img{width:100%;height:100%;object-fit:cover;display:block}
+.s-left-color{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem}
+.char-portrait{width:110px;height:110px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,.3);margin-bottom:1rem;display:block}
+.char-portrait-ph{width:110px;height:110px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:1.4rem;border:3px solid rgba(255,255,255,.3);margin-bottom:1rem}
+.char-name-large{color:#fff;font-size:1.1rem;font-weight:600;margin-bottom:.2rem}
+.char-role-large{color:rgba(255,255,255,.6);font-size:.78rem}
+
+.bubble{position:absolute;top:.9rem;left:.9rem;right:.9rem;background:rgba(15,25,50,.88);border-left:3px solid var(--accent);color:#d0dcea;border-radius:8px;padding:.6rem .8rem;font-size:.76rem;line-height:1.5;font-style:italic;max-width:240px}
+.family-flag{position:absolute;bottom:.8rem;left:.8rem;background:rgba(150,70,10,.9);border-radius:7px;padding:.5rem .7rem;font-size:.71rem;color:#fff;line-height:1.4;max-width:240px}
+.family-flag strong{display:block;font-size:.65rem;letter-spacing:.04em;margin-bottom:.12rem;opacity:.85}
+
+.s-right{flex:1;background:#edf0f4;padding:1.2rem 1.1rem;display:flex;flex-direction:column;justify-content:space-between;overflow-y:auto}
+.scene-ctx{font-size:.79rem;color:#444;line-height:1.6;margin-bottom:.75rem;padding-bottom:.75rem;border-bottom:1px solid #ced3dc}
+.q-label{font-size:.68rem;font-weight:600;color:#888;letter-spacing:.05em;margin-bottom:.3rem;text-transform:uppercase}
+.q-text{font-size:.86rem;font-weight:600;color:#1a2744;line-height:1.5;margin-bottom:.85rem}
+.choices{display:flex;flex-direction:column;gap:.55rem}
+.choice-btn{display:flex;align-items:flex-start;gap:.6rem;background:none;border:2px solid transparent;border-radius:6px;cursor:pointer;text-align:left;padding:.35rem .4rem;transition:border-color .15s}
+.choice-btn:hover,.choice-btn:focus-visible{border-color:var(--accent);outline:none;background:var(--accent-soft)}
+.choice-btn.selected{border-color:var(--accent);background:var(--accent-soft2)}
+.cbullet{width:24px;height:24px;min-width:24px;border-radius:50%;background:#9ab0cc;transition:background .15s;margin-top:1px;flex-shrink:0}
+.choice-btn:hover .cbullet,.choice-btn:focus-visible .cbullet{background:var(--accent)}
+.choice-btn.selected .cbullet{background:var(--accent);box-shadow:inset 0 0 0 3px #fff}
+.ctext{font-size:.8rem;color:#222;line-height:1.5}
+
+/* CHAR INTRO SCREEN */
+.char-intro-screen{flex-direction:row;min-height:580px}
+@media(max-width:700px){.char-intro-screen{flex-direction:column}}
+.ci-audio-bar{position:absolute;bottom:0;left:0;right:0;background:rgba(15,25,50,.92);border-top:2px solid;padding:.6rem .9rem;display:flex;align-items:center;gap:.6rem}
+.ci-play{width:26px;height:26px;border-radius:50%;border:none;cursor:pointer;color:#fff;font-size:.72rem;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ci-play:hover,.ci-play:focus{opacity:.85;outline:2px solid #fff;outline-offset:2px}
+.ci-track{flex:1;height:3px;background:rgba(255,255,255,.2);border-radius:2px;cursor:pointer}
+.ci-fill{height:100%;border-radius:2px;width:0%}
+.ci-time{color:rgba(255,255,255,.45);font-size:.66rem;min-width:28px}
+
+/* FEEDBACK */
+.fb-screen{flex-direction:row;min-height:580px}
+@media(max-width:700px){.fb-screen{flex-direction:column}}
+.fb-left{flex:0 0 48%;position:relative;overflow:hidden;background:#0d1520;min-height:240px}
+@media(max-width:700px){.fb-left{flex:0 0 200px}}
+.fb-left-img{width:100%;height:100%;object-fit:cover;display:block}
+.fb-left-color{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+.consequence-banner{position:absolute;bottom:0;left:0;right:0;background:rgba(120,20,20,.92);padding:.7rem .9rem;font-size:.74rem;color:#fff;line-height:1.5}
+.consequence-banner strong{display:block;font-size:.64rem;letter-spacing:.04em;margin-bottom:.12rem}
+.avery-interrupt{position:absolute;bottom:0;left:0;right:0;background:rgba(15,25,50,.94);border-top:2px solid var(--accent);padding:.7rem .9rem;font-size:.74rem;color:#d0dcea;line-height:1.5;font-style:italic}
+.avery-interrupt strong{display:block;font-size:.64rem;color:var(--accent);letter-spacing:.04em;margin-bottom:.12rem;font-style:normal}
+.fb-right{flex:1;background:#edf0f4;padding:1.2rem 1.1rem;display:flex;flex-direction:column;justify-content:space-between;overflow-y:auto}
+.fb-chosen{font-size:.8rem;color:#333;font-weight:500;margin-bottom:.6rem;line-height:1.5;padding:.5rem .7rem;background:#dde2eb;border-radius:6px;border-left:3px solid #9ab0cc}
+.fb-chosen.correct{background:#e7f2da;border-left:4px solid #2f7d1f;color:#234016}
+.fb-chosen.wrong{background:#f7dede;border-left:4px solid #c0392b;color:#5a1f18}
+.fb-chosen.wrong::before{content:'\2717  INCORRECT';display:block;font-size:.6rem;font-weight:700;letter-spacing:.06em;color:#c0392b;margin-bottom:.25rem}
+.fb-chosen.correct::before{content:'\2713  CORRECT';display:block;font-size:.6rem;font-weight:700;letter-spacing:.06em;color:#2f7d1f;margin-bottom:.25rem}
+.fb-lbl{font-size:.68rem;font-weight:600;color:#888;letter-spacing:.05em;margin-bottom:.22rem;text-transform:uppercase}
+.fb-text{font-size:.8rem;color:#333;line-height:1.6;margin-bottom:.7rem}
+.fb-takeaway{font-size:.8rem;font-weight:600;font-style:italic;color:#1D3D0F;line-height:1.6;margin-bottom:.9rem;padding:.5rem .7rem;border-left:3px solid #1D3D0F;background:#eaf3de;border-radius:0 6px 6px 0}
+.fb-actions{display:flex;flex-direction:column;gap:.45rem}
+.fb-btn{display:flex;align-items:center;gap:.6rem;background:none;border:2px solid transparent;border-radius:6px;cursor:pointer;padding:.25rem .35rem;transition:border-color .15s}
+.fb-btn:hover,.fb-btn:focus-visible{border-color:var(--accent);outline:none;background:var(--accent-soft)}
+.fbullet{width:24px;height:24px;min-width:24px;border-radius:50%;background:#9ab0cc;transition:background .15s;flex-shrink:0}
+.fb-btn:hover .fbullet,.fb-btn:focus-visible .fbullet{background:var(--accent)}
+.fb-btn-text{font-size:.8rem;color:#222}
+
+/* LIVE REGION */
+#live-region{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+
+/* EXIT */
+.exit-screen{flex-direction:column;align-items:center;justify-content:center;padding:2.5rem 1.5rem;text-align:center;background:#1a2744;min-height:580px}
+.exit-ring{width:68px;height:68px;border-radius:50%;border:3px solid var(--accent);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;color:var(--accent);font-size:1.5rem}
+</style>
+</head>
+<body>
+
+<div id="app" role="main">
+<div aria-live="polite" aria-atomic="true" id="live-region"></div>
+
+<!-- INTRO (text filled by boot() from TABLE) -->
+<div class="screen avery-screen active" id="screen-intro" role="region" aria-label="Course introduction">
+  <img class="avery-photo" id="intro-avery-photo" src="assets/avery.png" alt="Dr. Patricia Avery" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+  <div class="avery-photo-ph" style="display:none">DA</div>
+  <div class="avery-label" id="intro-avery-label"></div>
+  <div class="avery-title" id="intro-title"></div>
+  <div class="avery-sub" id="intro-sub"></div>
+  <div class="audio-wrap" id="aw-intro">
+    <button class="audio-play" id="btn-avery_intro" onclick="toggleAudio('avery_intro')" aria-label="Play Dr. Avery introduction">▶</button>
+    <div class="audio-track" role="progressbar" aria-label="Audio progress" onclick="seekAudio(event,'avery_intro')"><div class="audio-fill" id="fill-avery_intro"></div></div>
+    <span class="audio-time" id="time-avery_intro" aria-live="off">0:00</span>
+  </div>
+  <div class="audio-error" id="err-avery_intro">Audio unavailable — read transcript below</div>
+  <button class="transcript-btn" onclick="toggleTranscript('tr-intro')" aria-expanded="false" aria-controls="tr-intro">Show transcript</button>
+  <div class="transcript-box" id="tr-intro" role="note"></div>
+  <div class="avery-quote" id="intro-quote" style="margin-top:.9rem"></div>
+  <div class="avery-body" id="intro-body"></div>
+  <button class="btn-primary" id="intro-enter" onclick="showHub()" style="margin-top:.5rem">Enter the room →</button>
+</div>
+
+<!-- HUB (title/sub + cards filled by boot()) -->
+<div class="screen hub-screen" id="screen-hub" role="region" aria-label="Character selection">
+  <div class="hub-title" id="hub-title"></div>
+  <div class="hub-sub" id="hub-sub"></div>
+  <div class="prog-wrap"><div class="prog-fill" id="prog"></div></div>
+  <div class="prog-label" id="prog-label" aria-live="polite">0 of 5 perspectives completed</div>
+  <div class="char-grid" id="char-grid" role="list"></div>
+  <button class="reset-btn" onclick="confirmReset()" aria-label="Reset simulation and start over">↺ Start over</button>
+  <button class="debrief-btn" onclick="show('screen-exit')" aria-label="Skip to Dr. Avery's debrief and finish">Dr. Avery's debrief →</button>
+</div>
+
+<!-- CHAR INTRO -->
+<div class="screen char-intro-screen" id="screen-char-intro" role="region" aria-label="Character introduction">
+  <div class="s-left" id="ci-left">
+    <div class="s-left-color" id="ci-color-panel">
+      <img class="char-portrait" id="ci-portrait" alt="" onerror="this.style.display='none';document.getElementById('ci-portrait-ph').style.display='flex'">
+      <div class="char-portrait-ph" id="ci-portrait-ph" style="display:none"></div>
+      <div class="char-name-large" id="ci-name-large"></div>
+      <div class="char-role-large" id="ci-role-large"></div>
+    </div>
+    <div class="ci-audio-bar" id="ci-bar">
+      <button class="ci-play" id="ci-play-btn" onclick="toggleAudio('char_intro')" aria-label="Play character introduction audio">▶</button>
+      <div class="ci-track" onclick="seekAudio(event,'char_intro')" aria-label="Audio seek bar"><div class="ci-fill" id="fill-char_intro"></div></div>
+      <span class="ci-time" id="time-char_intro">0:00</span>
+    </div>
+  </div>
+  <div class="s-right">
+    <div>
+      <div class="q-label" id="ci-role-label"></div>
+      <div class="q-text" id="ci-intro-text" style="font-size:.95rem;line-height:1.75;color:#1a2744;font-weight:400"></div>
+      <div class="audio-error" id="err-char_intro" style="color:#c05050;font-size:.74rem;margin-top:.5rem">Audio unavailable</div>
+      <button class="transcript-btn" id="ci-transcript-btn" onclick="toggleTranscript('tr-char')" aria-expanded="false" aria-controls="tr-char" style="margin-top:.6rem">Show transcript</button>
+      <div class="transcript-box" id="tr-char" role="note" style="margin-top:.5rem"></div>
+    </div>
+    <div style="margin-top:1.2rem">
+      <button class="btn-primary" style="background:#1a2744;font-size:.83rem" onclick="goToQ1()">Begin scenario →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Q1 -->
+<div class="screen split-screen" id="screen-q1" role="region" aria-label="Question 1">
+  <div class="s-left">
+    <img class="s-left-img" id="q1-scene-img" alt="" onerror="this.style.display='none';document.getElementById('q1-color-panel').style.display='flex'">
+    <video class="s-left-img" id="q1-scene-vid" style="display:none" muted loop playsinline aria-hidden="true"></video>
+    <div class="s-left-color" id="q1-color-panel" style="display:none">
+      <img class="char-portrait" id="q1-portrait" alt="">
+      <div class="char-name-large" id="q1-char-name"></div>
+    </div>
+    <div class="bubble" id="q1-bubble"></div>
+    <div class="family-flag" id="q1-family" style="display:none"><strong class="family-tag"></strong><span id="q1-family-text"></span></div>
+  </div>
+  <div class="s-right">
+    <div>
+      <div class="scene-ctx" id="q1-ctx"></div>
+      <div class="q-label">Question 1 of 2</div>
+      <div class="q-text" id="q1-text"></div>
+      <div class="choices" id="q1-choices" role="group" aria-label="Answer choices"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FB1 -->
+<div class="screen fb-screen" id="screen-fb1" role="region" aria-label="Feedback">
+  <div class="fb-left">
+    <img class="fb-left-img" id="fb1-scene-img" alt="" onerror="this.style.display='none';document.getElementById('fb1-color').style.display='flex'">
+    <video class="fb-left-img" id="fb1-scene-vid" style="display:none" muted loop playsinline aria-hidden="true"></video>
+    <div class="fb-left-color" id="fb1-color" style="display:none;background:#1a2744">
+      <img class="char-portrait" id="fb1-portrait" alt="">
+    </div>
+    <div class="consequence-banner" id="fb1-consequence" style="display:none" role="alert"><strong class="consequence-tag"></strong><span id="fb1-consequence-text"></span></div>
+    <div class="avery-interrupt" id="fb1-avery" style="display:none" role="note"><strong>DR. AVERY</strong><span id="fb1-avery-text"></span></div>
+  </div>
+  <div class="fb-right">
+    <div>
+      <div class="fb-chosen" id="fb1-chosen"></div>
+      <div class="fb-lbl">Feedback</div>
+      <div class="fb-text" id="fb1-text"></div>
+      <div class="fb-takeaway" id="fb1-takeaway" style="display:none" role="note"></div>
+    </div>
+    <div class="fb-actions" id="fb1-actions" role="group" aria-label="Next steps"></div>
+  </div>
+</div>
+
+<!-- Q2 -->
+<div class="screen split-screen" id="screen-q2" role="region" aria-label="Question 2">
+  <div class="s-left">
+    <img class="s-left-img" id="q2-scene-img" alt="" onerror="this.style.display='none';document.getElementById('q2-color-panel').style.display='flex'">
+    <video class="s-left-img" id="q2-scene-vid" style="display:none" muted loop playsinline aria-hidden="true"></video>
+    <div class="s-left-color" id="q2-color-panel" style="display:none">
+      <img class="char-portrait" id="q2-portrait" alt="">
+      <div class="char-name-large" id="q2-char-name"></div>
+    </div>
+    <div class="bubble" id="q2-bubble"></div>
+    <div class="family-flag" id="q2-family" style="display:none"><strong class="family-tag"></strong><span id="q2-family-text"></span></div>
+  </div>
+  <div class="s-right">
+    <div>
+      <div class="scene-ctx" id="q2-ctx"></div>
+      <div class="q-label">Question 2 of 2</div>
+      <div class="q-text" id="q2-text"></div>
+      <div class="choices" id="q2-choices" role="group" aria-label="Answer choices"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FB2 -->
+<div class="screen fb-screen" id="screen-fb2" role="region" aria-label="Feedback">
+  <div class="fb-left">
+    <img class="fb-left-img" id="fb2-scene-img" alt="" onerror="this.style.display='none';document.getElementById('fb2-color').style.display='flex'">
+    <video class="fb-left-img" id="fb2-scene-vid" style="display:none" muted loop playsinline aria-hidden="true"></video>
+    <div class="fb-left-color" id="fb2-color" style="display:none;background:#1a2744">
+      <img class="char-portrait" id="fb2-portrait" alt="">
+    </div>
+    <div class="consequence-banner" id="fb2-consequence" style="display:none" role="alert"><strong class="consequence-tag"></strong><span id="fb2-consequence-text"></span></div>
+    <div class="avery-interrupt" id="fb2-avery" style="display:none" role="note"><strong>DR. AVERY</strong><span id="fb2-avery-text"></span></div>
+  </div>
+  <div class="fb-right">
+    <div>
+      <div class="fb-chosen" id="fb2-chosen"></div>
+      <div class="fb-lbl">Feedback</div>
+      <div class="fb-text" id="fb2-text"></div>
+      <div class="fb-takeaway" id="fb2-takeaway" style="display:none" role="note"></div>
+    </div>
+    <div class="fb-actions" id="fb2-actions" role="group" aria-label="Next steps"></div>
+  </div>
+</div>
+
+<!-- EXIT / DEBRIEF (filled by boot()) -->
+<div class="screen exit-screen" id="screen-exit" role="region" aria-label="Simulation complete">
+  <div class="exit-ring" aria-hidden="true">✓</div>
+  <div class="avery-label" id="exit-avery-label" style="color:#7a90b0;margin-bottom:.3rem">DR. PATRICIA AVERY</div>
+  <div class="avery-title" id="exit-title" style="color:#fff;margin-bottom:.3rem"></div>
+  <div class="avery-sub" id="exit-sub" style="margin-bottom:.9rem"></div>
+  <div class="audio-wrap">
+    <button class="audio-play" id="btn-avery_exit" onclick="toggleAudio('avery_exit')" aria-label="Play Dr. Avery closing remarks">▶</button>
+    <div class="audio-track" onclick="seekAudio(event,'avery_exit')" aria-label="Audio progress"><div class="audio-fill" id="fill-avery_exit"></div></div>
+    <span class="audio-time" id="time-avery_exit">0:00</span>
+  </div>
+  <div class="audio-error" id="err-avery_exit">Audio unavailable — read transcript below</div>
+  <button class="transcript-btn" onclick="toggleTranscript('tr-exit')" aria-expanded="false" aria-controls="tr-exit">Show transcript</button>
+  <div class="transcript-box" id="tr-exit" role="note"></div>
+  <div class="avery-review" style="max-width:580px;margin:1.4rem auto 0;text-align:left">
+    <div id="exit-lessons-intro" style="color:#7a90b0;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:.7rem;text-align:center"></div>
+    <div id="exit-lessons" style="display:flex;flex-direction:column;gap:.6rem"></div>
+  </div>
+  <div class="avery-body" id="exit-body" style="margin-top:1.3rem"></div>
+  <div style="max-width:520px;margin:1.5rem auto 0;display:flex;align-items:center;gap:.6rem;justify-content:center;padding:.7rem 1rem;background:rgba(79,168,92,.12);border:1px solid rgba(79,168,92,.4);border-radius:10px">
+    <span aria-hidden="true" style="color:#6fc47a;font-size:1rem;flex-shrink:0">✓</span>
+    <span style="color:#cdeacf;font-size:.82rem;line-height:1.5"><strong style="color:#fff" id="exit-completion"></strong> Continue in your lesson when you're ready.</span>
+  </div>
+  <div style="display:flex;gap:.8rem;margin-top:1.2rem;flex-wrap:wrap;justify-content:center">
+    <button class="btn-primary" onclick="confirmReset()">↺ Start over</button>
+    <button class="btn-primary" style="background:#2d3f6e" onclick="showHub()">Review hub</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+/* ============================================================================
+   ███  EDIT EVERYTHING IN THIS "TABLE" OBJECT TO MAKE A NEW BRIDGEWELL TABLE ███
+   ----------------------------------------------------------------------------
+   The engine below reads ONLY from TABLE. To build another module:
+     1. Copy this whole file.
+     2. Edit the fields in TABLE (title, accent, intro, the 5 team members, debrief).
+     3. Drop the matching images/audio into  assets/  (see TEMPLATE_GUIDE.md).
+     4. Deploy to its own GitHub repo + Pages, embed the URL in Rise.
+   The Bridgewell team (names, colors, portraits) and the Rivera-Washington
+   family are CANON — keep them consistent across every table.
+   ========================================================================== */
+const TABLE = {
+  "meta": {
+    "title": "One Family, Five Lenses",
+    "moduleLabel": "Module 1 · ALH 4105",
+    "hubTitle": "The Bridgewell Table",
+    "hubSub": "Step into each team member's perspective — choose the lens, then build the question",
+    "completion": "You've completed Module 1 — Theory Lenses.",
+    "familyTag": "RIVERA-WASHINGTON FAMILY"
+  },
+  "theme": {
+    "accent": "#2C7A8C"
+  },
+  "avery": {
+    "label": "DR. PATRICIA AVERY · BRIDGEWELL COMMUNITY HEALTH",
+    "portrait": "assets/avery.png",
+    "intro": {
+      "quote": "\"The data tells us what is happening. Theory is how we figure out why — and why our advice doesn't stick.\"",
+      "bodyHtml": "Welcome back to the Bridgewell Table. You've met the team — now I want to show you how we <em>think</em>.<br><br>When we sat down with the Rivera-Washington family, the data told us what was wrong: the blood pressure, the blood sugar, the asthma, the missed appointments. But data never explains why a person does what they do, or why the right advice doesn't stick. For that we use <strong>theory</strong> — a lens that explains behavior inside real constraints: what people believe, who they listen to, how ready they are, and what they can actually reach.<br><br>Public health gives us at least seven lenses — the Health Belief Model, Theory of Planned Behavior, Transtheoretical Model, Social Cognitive Theory, Socioecological Model, Diffusion of Innovations, and Community Organization &amp; Empowerment. No lens is right everywhere. The skill is choosing the one that fits the person in front of you — then turning it into the questions you'll actually ask.<br><br>Each of my team has brought one member of this family to the table. Step into their perspective. Choose the lens. Then build the question.",
+      "transcript": "Welcome back to the Bridgewell Table. You've met the team — now I want to show you how we think. When we sat down with the Rivera-Washington family, the data told us what was wrong: the blood pressure, the blood sugar, the asthma, the missed appointments. But data never explains why a person does what they do, or why the right advice doesn't stick. For that we use theory — a lens that explains behavior inside real constraints: what people believe, who they listen to, how ready they are, and what they can actually reach. Public health gives us at least seven lenses — the Health Belief Model, Theory of Planned Behavior, Transtheoretical Model, Social Cognitive Theory, Socioecological Model, Diffusion of Innovations, and Community Organization and Empowerment. No lens is right everywhere. The skill is choosing the one that fits the person in front of you — then turning it into the questions you'll actually ask. Each of my team has brought one member of this family to the table. Step into their perspective. Choose the lens. Then build the question.",
+      "audio": "assets/audio/avery_intro.mp3"
+    },
+    "debrief": {
+      "title": "Dr. Avery's Debrief",
+      "sub": "Module 1 · Theory Lenses for Real Populations",
+      "transcript": "Five lenses for five people in one family. Notice what never happened: we never argued about which theory is best. We asked which one fits. Two lenses we didn't use today are still in your kit. Diffusion of Innovations — for when the challenge is spreading a new program or practice through a community: early adopters, champions, compatibility. And Community Organization and Empowerment — for when change has to be owned and led by the community itself, built on trust. That's all seven. And remember what Alicia showed us: the same family, the same genes, two different zip codes — two different outcomes. The lens you pick has to account for who gets left behind, not just the person in front of you. That gap between who benefits and who doesn't is the equity question, and it's the one we never stop asking. Here's where you go next. Choose your own population. Turn your theory's constructs into the questions you'll actually ask — measurable, feasible, and respectful of the people you serve. Then test one construct in the Systems Lens Dashboard: change it, run it, and watch what moves — including the equity gap and the tradeoffs. Bring what you see back to the discussion in the language of the theory. That question set is the first piece of your assessment — everything in this course builds on it.",
+      "lessonsIntro": "Five family members, five lenses — and two more in your toolkit",
+      "bodyHtml": "Five lenses for five people in one family. Notice what never happened: we never argued about which theory is \"best.\" We asked which one <em>fits.</em><br><br>Two lenses we didn't use today are still in your kit. <strong>Diffusion of Innovations</strong> — for spreading a new program through a community. And <strong>Community Organization &amp; Empowerment</strong> — for when change must be owned and led by the community itself. That's all seven.<br><br>Remember what Alicia showed us: the same family, the same genes, two different zip codes — two different outcomes. The lens you pick has to account for who gets left behind. That is the <strong>equity question</strong>, and we never stop asking it.<br><br>Where you go next: choose your <em>own</em> population, turn your theory's constructs into the questions you'll actually ask, then test one construct in the <strong>Systems Lens Dashboard</strong> — and watch the equity gap and tradeoffs move. Bring it back to the discussion in the language of the theory.",
+      "audio": "assets/audio/avery_exit.mp3"
+    }
+  },
+  "team": [
+    {
+      "key": "marcus",
+      "name": "Marcus",
+      "initials": "MC",
+      "creds": "CMA",
+      "color": "#4F81BD",
+      "bgDark": "#1e2e4a",
+      "phColor": "#fff",
+      "role": "Carmen, 72 · hypertension",
+      "ariaName": "Marcus, CMA",
+      "portrait": "assets/marcus.png",
+      "audio": "assets/audio/marcus.mp3",
+      "lesson": "Carmen didn't need more facts — she needed the Health Belief Model. When someone doesn't feel at risk, assess perceived susceptibility and barriers first.",
+      "intro": {
+        "role": "Certified Medical Assistant",
+        "text": "I see Carmen in urgent care every few months — blood pressure through the roof, blood sugar all over the place. And every time she tells me the same thing: \"Mijo, I feel fine.\" She's 72, no regular doctor, doesn't trust the system, and everything I hand her is in English. I can give her the numbers all day. The numbers aren't the problem. What she believes is the problem.",
+        "transcript": "I see Carmen in urgent care every few months — blood pressure through the roof, blood sugar all over the place. And every time she tells me the same thing: \"Mijo, I feel fine.\" She's 72, no regular doctor, doesn't trust the system, and everything I hand her is in English. I can give her the numbers all day. The numbers aren't the problem. What she believes is the problem."
+      },
+      "scenes": {
+        "q1": {
+          "img": "assets/scenes/carmen.jpeg",
+          "pos": "50% 22%"
+        },
+        "q2": {
+          "img": "assets/scenes/marcus_q2.jpeg",
+          "pos": "50% 28%"
+        }
+      },
+      "q1": {
+        "bubble": "\"'I feel fine' — she says it every visit, even at 190 over 110.\"",
+        "family": true,
+        "familyText": "Carmen Rivera, 72 · uncontrolled hypertension + Type 2 diabetes · no primary care provider, relies on urgent care.",
+        "ctx": "Carmen reports no symptoms and sees no reason to change. She avoids follow-up, distrusts providers, and faces cost, transportation, and language barriers.",
+        "q": "Which theory lens best explains why Carmen isn't acting on her diagnosis — and best fits where you'd start?",
+        "choices": [
+          {
+            "text": "Health Belief Model — low perceived susceptibility (\"I feel fine\") plus high perceived barriers (cost, transport, distrust, language), and no cue to action.",
+            "correct": true,
+            "feedback": "Right. HBM is built for exactly this — a person who doesn't perceive personal risk and faces real barriers to acting. It points you at her beliefs and barriers, not at more facts about numbers she's already heard.",
+            "takeaway": "Pick the lens that targets the actual driver. Carmen's driver is belief + access, so HBM gives you the constructs to assess: perceived susceptibility, perceived barriers, cues to action."
+          },
+          {
+            "text": "Diffusion of Innovations — get Carmen to be an \"early adopter\" of a new program.",
+            "correct": false,
+            "feedback": "Not quite. DOI explains how a new program or practice spreads through a community — adopters, champions, compatibility. Carmen's issue isn't adopting an innovation; it's that she doesn't perceive her own risk. That's a Health Belief Model question."
+          },
+          {
+            "text": "Theory of Planned Behavior — focus on Carmen's intention and the social norms around her.",
+            "correct": false,
+            "feedback": "Closer, but TPB assumes the person is already weighing an intention. Carmen isn't — she doesn't believe she's at risk at all. Start with HBM, where perceived susceptibility is the first construct."
+          }
+        ]
+      },
+      "q2": {
+        "bubble": "\"So how do I actually ask her about this — without making her shut down?\"",
+        "family": true,
+        "familyText": "Carmen speaks Spanish as her primary language and distrusts the system after past negative experiences.",
+        "ctx": "You've chosen the HBM lens. Now translate one construct — perceived susceptibility — into a single assessment question you could really use with Carmen.",
+        "q": "Which question best operationalizes \"perceived susceptibility\" AND is appropriate for Carmen?",
+        "choices": [
+          {
+            "text": "\"On a scale of 1–5, how likely do you feel it is that your blood pressure could cause you a serious health problem in the next few years?\" — offered in Spanish, asked without judgment.",
+            "correct": true,
+            "feedback": "Yes. It measures perceived susceptibility directly (likelihood of harm to her), it's scaled so you can track change, and offering it in her language respects access and dignity. Theory-aligned, culturally appropriate, and measurable.",
+            "takeaway": "A good assessment item names the construct (perceived risk), is measurable (a scale), and is feasible and culturally appropriate for the real person."
+          },
+          {
+            "text": "\"Do you understand that uncontrolled hypertension causes strokes, heart attacks, and kidney failure?\"",
+            "correct": false,
+            "consequence": "Carmen nods, says \"sí, sí,\" and doesn't come back. The question made her feel judged, not assessed.",
+            "feedback": "This measures knowledge, not perceived susceptibility — and the fear framing reads like a lecture, which deepens Carmen's distrust. Knowing the facts isn't the same as believing \"this could happen to me.\""
+          },
+          {
+            "text": "\"Why don't you take better care of yourself?\"",
+            "correct": false,
+            "feedback": "This isn't an assessment item — it's a judgment. It measures nothing and violates the respect Carmen is owed. Operationalizing a construct means a neutral, measurable question."
+          }
+        ]
+      }
+    },
+    {
+      "key": "jordan",
+      "name": "Jordan",
+      "initials": "JK",
+      "creds": "Nutritionist",
+      "color": "#4FA85C",
+      "bgDark": "#18291a",
+      "phColor": "#fff",
+      "role": "DeShawn, 48 · pre-diabetes",
+      "ariaName": "Jordan, Nutritionist",
+      "portrait": "assets/jordan.png",
+      "audio": "assets/audio/jordan.mp3",
+      "lesson": "DeShawn knew, but wasn't ready. The Transtheoretical Model meets a person at their stage instead of assuming action.",
+      "intro": {
+        "role": "Nutritionist",
+        "text": "I met DeShawn at a workplace wellness event — two jobs, sixty-hour weeks, pre-diabetic, pack a day. He told me, \"I know I should eat better. I'm just not there right now.\" That sentence tells me everything. He's not refusing. He's not ready — yet. If I hand him a meal plan today, it's in the trash by tonight.",
+        "transcript": "I met DeShawn at a workplace wellness event — two jobs, sixty-hour weeks, pre-diabetic, pack a day. He told me, \"I know I should eat better. I'm just not there right now.\" That sentence tells me everything. He's not refusing. He's not ready — yet. If I hand him a meal plan today, it's in the trash by tonight."
+      },
+      "scenes": {
+        "q1": {
+          "img": "assets/scenes/deshawn.jpeg",
+          "pos": "62% 20%"
+        },
+        "q2": {
+          "img": "assets/scenes/jordan_q2.jpeg",
+          "pos": "62% 32%"
+        }
+      },
+      "q1": {
+        "bubble": "\"'I know I should. I'm just not there right now.'\"",
+        "family": true,
+        "familyText": "DeShawn Washington, 48 · pre-diabetic, smoker · time-poor, no insurance, reluctant healthcare user.",
+        "ctx": "DeShawn knows he's at risk but isn't ready to change. He uses care only in a crisis and is stretched thin by time and money.",
+        "q": "Which lens best fits DeShawn — someone who knows the risk but isn't ready to act?",
+        "choices": [
+          {
+            "text": "Transtheoretical Model (Stages of Change) — DeShawn is in contemplation; match the intervention to his readiness stage instead of assuming he's ready.",
+            "correct": true,
+            "feedback": "Right. TTM exists for the gap between knowing and doing. Assess his stage first, then meet him there — a contemplator needs decisional-balance work, not a meal plan written for someone already in the action stage.",
+            "takeaway": "When the barrier is readiness — not knowledge or access — the Transtheoretical Model is your lens, and assessing stage comes before any plan."
+          },
+          {
+            "text": "Health Belief Model — raise his perceived susceptibility.",
+            "correct": false,
+            "feedback": "Tempting, but DeShawn already perceives the risk — he said he knows he should change. HBM fits someone like Carmen who doesn't feel at risk. DeShawn's gap is readiness, which is TTM."
+          },
+          {
+            "text": "Social Cognitive Theory — build his skills and self-efficacy.",
+            "correct": false,
+            "feedback": "Skills matter eventually, but offering them before he's ready wastes the visit. First assess where he is with TTM; self-efficacy work lands once he reaches preparation or action."
+          }
+        ]
+      },
+      "q2": {
+        "bubble": "\"He's got five minutes between shifts. Make it count.\"",
+        "family": true,
+        "familyText": "DeShawn works 60+ hours a week and engages only briefly — your question must be quick and non-confrontational.",
+        "ctx": "You've chosen TTM. Translate the construct stage of readiness into an assessment question.",
+        "q": "Which question best operationalizes DeShawn's \"stage of change\"?",
+        "choices": [
+          {
+            "text": "\"Which best describes you right now — not planning to change your eating in the next 6 months, thinking about it, planning to start within a month, or already making changes?\"",
+            "correct": true,
+            "feedback": "Yes. That single item maps onto the TTM stages (pre-contemplation → contemplation → preparation → action), it's measurable, and it's fast enough to fit his life. Now you know exactly where to meet him.",
+            "takeaway": "Operationalizing \"readiness\" means handing the person the stages as answer options — the response IS the assessment."
+          },
+          {
+            "text": "\"Here's a 1,500-calorie meal plan — can you follow it this week?\"",
+            "correct": false,
+            "consequence": "DeShawn takes the handout to be polite, never starts it, and skips the follow-up — confirming he was never in the action stage.",
+            "feedback": "That's an intervention, not an assessment, and it assumes he's in the action stage. You've measured nothing about his readiness. Assess stage first."
+          },
+          {
+            "text": "\"How motivated are you, 1–10, to be healthier?\"",
+            "correct": false,
+            "feedback": "Too vague. A single \"motivation\" number doesn't reveal his stage or your next move, and \"be healthier\" isn't a specific behavior. TTM wants the specific behavior mapped to a specific stage."
+          }
+        ]
+      }
+    },
+    {
+      "key": "nova",
+      "name": "Nova",
+      "initials": "NP",
+      "creds": "RDH",
+      "color": "#CF95C7",
+      "bgDark": "#261a26",
+      "phColor": "#3a1a38",
+      "role": "Lucia, 45 · dental anxiety",
+      "ariaName": "Nova, Dental Hygienist",
+      "portrait": "assets/nova.png",
+      "audio": "assets/audio/nova.mp3",
+      "lesson": "Lucia's barrier was \"I don't think I can.\" Social Cognitive Theory targets self-efficacy — confidence built through small wins.",
+      "intro": {
+        "role": "Dental Hygienist",
+        "text": "Lucia hasn't sat in my chair in years — not because she doesn't care, but because she's terrified of it. She's 45, gum disease getting worse, caring for her mother Carmen, running a household, working part-time. She told me, \"I just don't think I can get through a cleaning.\" That's not a knowledge gap. That's confidence — she doesn't believe she can do it.",
+        "transcript": "Lucia hasn't sat in my chair in years — not because she doesn't care, but because she's terrified of it. She's 45, gum disease getting worse, caring for her mother Carmen, running a household, working part-time. She told me, \"I just don't think I can get through a cleaning.\" That's not a knowledge gap. That's confidence — she doesn't believe she can do it."
+      },
+      "scenes": {
+        "q1": {
+          "img": "assets/scenes/lucia.jpeg",
+          "pos": "50% 22%"
+        },
+        "q2": {
+          "img": "assets/scenes/nova_q2.jpeg",
+          "pos": "50% 20%"
+        }
+      },
+      "q1": {
+        "bubble": "\"'I just don't think I can get through a cleaning.'\"",
+        "family": true,
+        "familyText": "Lucia Rivera-Chen, 45 · gum disease + dental anxiety · caregiver for Carmen, defers her own care.",
+        "ctx": "Lucia avoids dental care out of anxiety, not ignorance. She doubts her own ability to follow through.",
+        "q": "Which lens best fits Lucia — someone whose barrier is believing she can do it?",
+        "choices": [
+          {
+            "text": "Social Cognitive Theory — her behavior hinges on self-efficacy; SCT adds modeling and reinforcement to build confidence and skill.",
+            "correct": true,
+            "feedback": "Right. SCT centers self-efficacy — belief in one's ability to perform a behavior. Lucia knows she needs the cleaning; she doesn't believe she can get through it. SCT tells you to assess that confidence, then build it with small wins and modeling.",
+            "takeaway": "When the barrier is \"I don't think I can,\" Social Cognitive Theory and its self-efficacy construct are your lens."
+          },
+          {
+            "text": "Transtheoretical Model — assess her stage of readiness.",
+            "correct": false,
+            "feedback": "Close, but Lucia is arguably ready — she wants care; she's blocked by anxiety and low confidence. TTM fits someone who isn't ready (like DeShawn). Lucia's gap is self-efficacy, which is SCT."
+          },
+          {
+            "text": "Community Organization / Empowerment — mobilize the community to lead the change.",
+            "correct": false,
+            "feedback": "Community Organization fits population-level, community-led efforts. Lucia's barrier is individual confidence, so the right lens is Social Cognitive Theory and self-efficacy."
+          }
+        ]
+      },
+      "q2": {
+        "bubble": "\"She carries everyone. She won't admit when something scares her.\"",
+        "family": true,
+        "familyText": "Lucia carries the \"strong one\" role in her family and rarely admits when something is hard.",
+        "ctx": "You've chosen SCT. Translate self-efficacy into an assessment question for Lucia.",
+        "q": "Which question best operationalizes Lucia's \"self-efficacy\" about dental care?",
+        "choices": [
+          {
+            "text": "\"How confident are you, 0–10, that you could complete a dental cleaning if we went slowly and you could pause anytime?\"",
+            "correct": true,
+            "feedback": "Yes. That measures self-efficacy directly — confidence in performing the specific behavior under realistic conditions — and it's scaled so you can watch it rise. It also signals the support that builds efficacy.",
+            "takeaway": "Self-efficacy is operationalized as confidence (a 0–10 scale) to perform a specific behavior — not as desire or knowledge."
+          },
+          {
+            "text": "\"How important is your oral health to you, 1–10?\"",
+            "correct": false,
+            "feedback": "That measures value/attitude, not self-efficacy. Lucia already values her health — the gap is whether she believes she can get through the appointment."
+          },
+          {
+            "text": "\"You know gum disease is linked to heart disease and diabetes, right?\"",
+            "correct": false,
+            "feedback": "That's knowledge-testing, and for someone with dental anxiety it adds pressure. It measures none of the SCT constructs you chose. Ask about her confidence to perform the behavior."
+          }
+        ]
+      }
+    },
+    {
+      "key": "elena",
+      "name": "Elena",
+      "initials": "EP",
+      "creds": "RRT",
+      "color": "#B3A2C7",
+      "bgDark": "#1e1a26",
+      "phColor": "#2a2038",
+      "role": "Marco, 16 · asthma & vaping",
+      "ariaName": "Elena, Respiratory Therapist",
+      "portrait": "assets/elena.png",
+      "audio": "assets/audio/elena.mp3",
+      "lesson": "Marco's vaping lives in peer norms and intention — the Theory of Planned Behavior, the right lens for adolescent, peer-driven behavior.",
+      "intro": {
+        "role": "Respiratory Therapist",
+        "text": "Marco's sixteen. Asthma since he was seven — and now he's vaping, started at fourteen because everyone in his group does. His parents just found out. Here's what I've learned about teenagers: Marco knows vaping is bad for his lungs. Knowing isn't the issue. What his friends think, whether he believes he could actually stop, whether he even intends to — that's where the real decision lives.",
+        "transcript": "Marco's sixteen. Asthma since he was seven — and now he's vaping, started at fourteen because everyone in his group does. His parents just found out. Here's what I've learned about teenagers: Marco knows vaping is bad for his lungs. Knowing isn't the issue. What his friends think, whether he believes he could actually stop, whether he even intends to — that's where the real decision lives."
+      },
+      "scenes": {
+        "q1": {
+          "img": "assets/scenes/marco.jpeg",
+          "pos": "40% 18%"
+        },
+        "q2": {
+          "img": "assets/scenes/elena_q2.jpeg",
+          "pos": "42% 22%"
+        }
+      },
+      "q1": {
+        "bubble": "\"He knows it's bad for his asthma. He does it anyway — because his friends do.\"",
+        "family": true,
+        "familyText": "Marco Chen, 16 · asthma + regular vaping · peer-influenced, college-track stress.",
+        "ctx": "Marco vapes despite knowing the risk to his asthma. The behavior is driven by peer norms, his attitudes, and whether he believes he could stop.",
+        "q": "Which lens best explains a peer-driven teen behavior like Marco's vaping?",
+        "choices": [
+          {
+            "text": "Theory of Planned Behavior — behavior follows intention, shaped by attitudes, subjective norms (peers), and perceived behavioral control.",
+            "correct": true,
+            "feedback": "Right. TPB is the classic fit for adolescent, peer-driven behavior. It directs you to assess what his friends think (subjective norms), his attitude toward vaping, and whether he believes he could quit (perceived control) — the three things that actually shape his intention.",
+            "takeaway": "When norms and intention drive the behavior — especially in teens — the Theory of Planned Behavior gives you the right constructs."
+          },
+          {
+            "text": "Socioecological Model — focus on policy and environment around Marco.",
+            "correct": false,
+            "feedback": "SEM matters for vaping at the population level (retail access, school policy), but for Marco's individual decision the immediate drivers are peer norms and intention — that's TPB."
+          },
+          {
+            "text": "Health Belief Model — does Marco feel susceptible to harm?",
+            "correct": false,
+            "feedback": "Marco already knows and feels the risk to his asthma — perceived susceptibility isn't the gap. What overrides it is peer norms and intention, which is TPB's territory."
+          }
+        ]
+      },
+      "q2": {
+        "bubble": "\"Ask him about the rules and he shuts down. Ask about his friends and he talks.\"",
+        "family": true,
+        "familyText": "Marco is more honest when he isn't being lectured — questions about friends land better than questions about rules.",
+        "ctx": "You've chosen TPB. Translate the construct subjective norms into an assessment question for Marco.",
+        "q": "Which question best operationalizes \"subjective norms\" for Marco?",
+        "choices": [
+          {
+            "text": "\"Of your close friends, how many would you say vape — most, about half, a few, or none?\"",
+            "correct": true,
+            "feedback": "Yes. That measures subjective norms — his perception of what people who matter to him do — on a scale you can track. It's developmentally appropriate and opens the conversation without judgment.",
+            "takeaway": "\"Subjective norms\" becomes measurable when you ask about the behavior of the people whose opinion matters to him — not about the rules."
+          },
+          {
+            "text": "\"Don't you know vaping can trigger an asthma attack?\"",
+            "correct": false,
+            "consequence": "Marco shrugs, says \"yeah, I know,\" and tells you nothing real. The lecture closed the door.",
+            "feedback": "That targets knowledge he already has, and the framing invites him to shut down. It measures none of the TPB constructs you chose."
+          },
+          {
+            "text": "\"How addicted to nicotine are you, 1–10?\"",
+            "correct": false,
+            "feedback": "Dependence is worth knowing, but it's not a TPB construct and a teen may not answer it honestly cold. To operationalize subjective norms, ask about his friends' behavior."
+          }
+        ]
+      }
+    },
+    {
+      "key": "alicia",
+      "name": "Alicia",
+      "initials": "AR",
+      "creds": "PTA",
+      "color": "#F79646",
+      "bgDark": "#261808",
+      "phColor": "#2e1800",
+      "role": "Carmen, 72 · fall risk",
+      "ariaName": "Alicia, PTA",
+      "portrait": "assets/alicia.png",
+      "audio": "assets/audio/alicia.mp3",
+      "lesson": "Carmen did her part; the neighborhood didn't. The Socioecological Model assesses the levels above the individual — access, environment, policy.",
+      "intro": {
+        "role": "Physical Therapist Assistant",
+        "text": "I helped Carmen after her fall — strengthening, balance work. She did everything I asked. But then she goes home to Riverside Flats: no safe sidewalks, a third-floor walk-up, nowhere to move safely, no way to get to a class across town. I can fix the muscle. I can't fix the street. With this family, the same body gets a different outcome depending on the zip code.",
+        "transcript": "I helped Carmen after her fall — strengthening, balance work. She did everything I asked. But then she goes home to Riverside Flats: no safe sidewalks, a third-floor walk-up, nowhere to move safely, no way to get to a class across town. I can fix the muscle. I can't fix the street. With this family, the same body gets a different outcome depending on the zip code."
+      },
+      "scenes": {
+        "q1": {
+          "img": "assets/scenes/carmen.jpeg",
+          "pos": "50% 22%"
+        },
+        "q2": {
+          "img": "assets/scenes/alicia_q2.jpeg",
+          "pos": "50% 30%"
+        }
+      },
+      "q1": {
+        "bubble": "\"I can fix the muscle. I can't fix the street.\"",
+        "family": true,
+        "familyText": "Same family, two neighborhoods — Riverside Flats (limited resources) vs Maple Heights (greater access). Same genetics, different outcomes.",
+        "ctx": "Carmen's fall risk isn't only her strength — it's shaped by her building, her neighborhood, transportation, and policy. Her relatives in Maple Heights do better with the same genetic risk.",
+        "q": "Which lens best fits a problem shaped by individual, environmental, and policy levels at once?",
+        "choices": [
+          {
+            "text": "Socioecological Model — outcomes are shaped across levels (individual → interpersonal → community → policy), especially access and environment.",
+            "correct": true,
+            "feedback": "Right. SEM is the lens when the cause sits above the individual — the building, the neighborhood, transportation, policy. It explains why the same family does better in Maple Heights than Riverside Flats, and it tells you to assess beyond the person.",
+            "takeaway": "When access and environment drive the outcome — and the individual is doing their part — the Socioecological Model is your lens."
+          },
+          {
+            "text": "Social Cognitive Theory — build Carmen's self-efficacy and skills.",
+            "correct": false,
+            "feedback": "Carmen already did the exercises — individual effort isn't the gap. SCT stays at the individual level; the barrier here is the environment, which is the Socioecological Model."
+          },
+          {
+            "text": "Health Belief Model — raise Carmen's perceived risk of falling.",
+            "correct": false,
+            "feedback": "Carmen already takes the risk seriously and did the work. HBM addresses individual beliefs; this problem lives in her environment and access — the Socioecological Model."
+          }
+        ]
+      },
+      "q2": {
+        "bubble": "\"Her body's ready. Her building isn't. Measure the building.\"",
+        "family": true,
+        "familyText": "Carmen lives in a third-floor walk-up in Riverside Flats with limited transportation.",
+        "ctx": "You've chosen SEM. Translate a construct — environmental / community-level risk — into an assessment question.",
+        "q": "Which question best operationalizes the environmental level of Carmen's fall risk?",
+        "choices": [
+          {
+            "text": "\"In and around your home, how many of these are barriers to staying active and safe — stairs without a railing, no safe place to walk, no transportation to a class? (count 0–3)\"",
+            "correct": true,
+            "feedback": "Yes. That measures the environmental and community level — the conditions around her — and it's countable, so you can track and target it. It assesses what SEM says actually drives the outcome.",
+            "takeaway": "Operationalizing SEM means writing items that measure the levels beyond the individual — home, neighborhood, access — not just personal behavior."
+          },
+          {
+            "text": "\"How often do you do your balance exercises each week?\"",
+            "correct": false,
+            "feedback": "That's an individual-level behavior measure. Useful, but it isn't the SEM construct you chose — it ignores the environment SEM says is driving the risk."
+          },
+          {
+            "text": "\"Do you feel motivated to prevent another fall?\"",
+            "correct": false,
+            "feedback": "That measures individual attitude, not the environmental level. SEM points you to the conditions around Carmen — her building, her neighborhood, her access."
+          }
+        ]
+      }
+    }
+  ]
+};
+
+/* ============================ ENGINE (do not edit per-table) ================ */
+// Derive the engine's lookup tables from TABLE. Adding/reordering members in
+// TABLE.team automatically updates the hub, progress count, and debrief.
+const TEAM = TABLE.team;
+const TEAM_KEYS = TEAM.map(t=>t.key);
+const byKey = {}; TEAM.forEach(t=>byKey[t.key]=t);
+
+const PORTRAITS = { avery:TABLE.avery.portrait };
+TEAM.forEach(t=>PORTRAITS[t.key]=t.portrait);
+
+const SCENE_IMG = 'assets/conferenceroom.jpg';
+const SCENE_ASSETS = {};
+TEAM.forEach(t=>SCENE_ASSETS[t.key]=t.scenes||{});
+function sceneFor(name,qNum){
+  const e=(SCENE_ASSETS[name]||{})['q'+qNum];
+  if(e&&e.video)return{video:e.video,pos:e.pos};
+  if(typeof e==='string')return{img:e};
+  if(e&&e.img)return{img:e.img,pos:e.pos};
+  return{img:SCENE_IMG};
+}
+const SCENE_BLOB = {};
+
+const AUDIO_URLS = { avery_intro:TABLE.avery.intro.audio, avery_exit:TABLE.avery.debrief.audio };
+TEAM.forEach(t=>AUDIO_URLS[t.key]=t.audio);
+
+const TRANSCRIPTS = { avery_intro:TABLE.avery.intro.transcript, avery_exit:TABLE.avery.debrief.transcript };
+TEAM.forEach(t=>TRANSCRIPTS[t.key]=(t.intro&&t.intro.transcript)||t.intro.text);
+
+const CHARS = {};
+TEAM.forEach(t=>{ CHARS[t.key]={color:t.color,bgDark:t.bgDark,audioKey:t.key,intro:t.intro,q1:t.q1,q2:t.q2}; });
+
+const TOTAL = TEAM_KEYS.length;
+
+const audios={};
+let currentChar=null, completed={}, q1Wrong=0, q2Wrong=0;
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// Compute accent shades from a single hex so the whole UI re-themes per module.
+function applyTheme(hex){
+  function h2(x){return parseInt(x,16);}
+  const c=hex.replace('#','');
+  const r=h2(c.slice(0,2)),g=h2(c.slice(2,4)),b=h2(c.slice(4,6));
+  const mix=(t,a)=>[Math.round(r+(t[0]-r)*a),Math.round(g+(t[1]-g)*a),Math.round(b+(t[2]-b)*a)];
+  const rs=document.documentElement.style;
+  rs.setProperty('--accent',hex);
+  rs.setProperty('--accent-hover','rgb('+mix([0,0,0],.2).join(',')+')');
+  rs.setProperty('--accent-focus','rgb('+mix([255,255,255],.4).join(',')+')');
+  rs.setProperty('--accent-soft','rgba('+r+','+g+','+b+',.07)');
+  rs.setProperty('--accent-soft2','rgba('+r+','+g+','+b+',.13)');
+}
+
+// Populate the static screens (intro / hub cards / debrief) from TABLE.
+function boot(){
+  applyTheme(TABLE.theme.accent);
+  document.title = TABLE.meta.title + ' · ' + TABLE.meta.moduleLabel;
+
+  // intro
+  document.getElementById('intro-avery-photo').src=TABLE.avery.portrait;
+  document.getElementById('intro-avery-label').textContent=TABLE.avery.label;
+  document.getElementById('intro-title').textContent=TABLE.meta.title;
+  document.getElementById('intro-sub').textContent=TABLE.meta.moduleLabel;
+  document.getElementById('tr-intro').textContent=TABLE.avery.intro.transcript;
+  document.getElementById('intro-quote').textContent=TABLE.avery.intro.quote;
+  document.getElementById('intro-body').innerHTML=TABLE.avery.intro.bodyHtml;
+
+  // hub
+  document.getElementById('hub-title').textContent=TABLE.meta.hubTitle;
+  document.getElementById('hub-sub').textContent=TABLE.meta.hubSub;
+  document.getElementById('char-grid').innerHTML=TEAM.map(t=>(
+    '<div class="char-card" id="card-'+t.key+'" style="background:'+t.bgDark+';border-color:'+t.color+'" '+
+    'onclick="startChar(\''+t.key+'\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \')startChar(\''+t.key+'\')" '+
+    'tabindex="0" role="listitem button" aria-label="'+esc(t.ariaName||t.name)+'">'+
+    '<img class="char-avatar" src="'+t.portrait+'" alt="'+esc(t.name)+'" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">'+
+    '<div class="char-avatar-ph" style="background:'+t.color+';color:'+(t.phColor||'#fff')+';display:none">'+esc(t.initials||'')+'</div>'+
+    '<div class="char-name">'+esc(t.name)+'</div><div class="char-role">'+esc(t.role)+'</div>'+
+    '</div>'
+  )).join('');
+
+  // family / consequence flag labels (canon, constant)
+  document.querySelectorAll('.family-tag').forEach(e=>e.textContent=TABLE.meta.familyTag);
+  document.querySelectorAll('.consequence-tag').forEach(e=>e.textContent='CONSEQUENCE · '+TABLE.meta.familyTag);
+
+  // debrief
+  document.getElementById('exit-title').textContent=TABLE.avery.debrief.title;
+  document.getElementById('exit-sub').textContent=TABLE.avery.debrief.sub;
+  document.getElementById('tr-exit').textContent=TABLE.avery.debrief.transcript;
+  document.getElementById('exit-lessons-intro').textContent=TABLE.avery.debrief.lessonsIntro;
+  document.getElementById('exit-lessons').innerHTML=TEAM.map(t=>(
+    '<div style="display:flex;gap:.65rem;align-items:flex-start">'+
+    '<span style="width:9px;height:9px;border-radius:50%;background:'+t.color+';margin-top:.4rem;flex-shrink:0"></span>'+
+    '<div style="color:#cdd8e6;font-size:.8rem;line-height:1.55"><strong style="color:#fff">'+esc(t.name)+' ('+esc(t.creds)+'):</strong> '+esc(t.lesson)+'</div></div>'
+  )).join('');
+  document.getElementById('exit-body').innerHTML=TABLE.avery.debrief.bodyHtml;
+  document.getElementById('exit-completion').textContent=TABLE.meta.completion;
+  document.getElementById('prog-label').textContent='0 of '+TOTAL+' perspectives completed';
+}
+
+function getAudio(key){
+  if(!audios[key]){
+    const url=key==='char_intro'?AUDIO_URLS[currentChar]:AUDIO_URLS[key];
+    if(!url)return null;
+    const a=new Audio();
+    audios[key]=a;
+    a.addEventListener('timeupdate',()=>updateAudioProgress(key,a));
+    a.addEventListener('ended',()=>{
+      const btn=key==='char_intro'?document.getElementById('ci-play-btn'):document.getElementById('btn-'+key);
+      if(btn)btn.textContent='▶';
+    });
+    a.addEventListener('error',()=>showAudioError(key));
+    a.src=url;
+  }
+  return audios[key];
+}
+
+function showAudioError(key){
+  const errId=key==='char_intro'?'err-char_intro':`err-${key}`;
+  const errEl=document.getElementById(errId);
+  if(errEl)errEl.style.display='block';
+  const btn=key==='char_intro'?document.getElementById('ci-play-btn'):document.getElementById('btn-'+key);
+  if(btn){btn.textContent='✕';btn.disabled=true;}
+}
+
+function resetPlayButton(key){
+  const btn=key==='char_intro'?document.getElementById('ci-play-btn'):document.getElementById('btn-'+key);
+  if(btn)btn.textContent='▶';
+}
+
+let activeKey=null;
+
+function btnFor(key){
+  return key==='char_intro'?document.getElementById('ci-play-btn'):document.getElementById('btn-'+key);
+}
+
+function playKey(key){
+  stopAllAudio('');
+  const a=getAudio(key);if(!a)return;
+  activeKey=key;
+  a.play().then(()=>{
+    if(activeKey!==key){a.pause();return;}
+    const b=btnFor(key);if(b)b.textContent='⏸';
+  }).catch(()=>{
+    if(activeKey===key)resetPlayButton(key);
+  });
+}
+
+function toggleAudio(key){
+  const a=getAudio(key);if(!a)return;
+  if(a.paused){
+    playKey(key);
+  } else {
+    a.pause();activeKey=null;
+    const b=btnFor(key);if(b)b.textContent='▶';
+  }
+}
+
+function stopAllAudio(except){
+  if(activeKey&&activeKey!==except)activeKey=null;
+  Object.keys(audios).forEach(k=>{
+    if(k!==except&&audios[k]&&!audios[k].paused){
+      audios[k].pause();
+      const btn=btnFor(k);
+      if(btn)btn.textContent='▶';
+    }
+  });
+}
+
+function updateAudioProgress(key,a){
+  if(!a.duration)return;
+  const pct=a.currentTime/a.duration*100;
+  const fillId=key==='char_intro'?'fill-char_intro':'fill-'+key;
+  const timeId=key==='char_intro'?'time-char_intro':'time-'+key;
+  const fill=document.getElementById(fillId);
+  const time=document.getElementById(timeId);
+  if(fill)fill.style.width=pct+'%';
+  if(time){const m=Math.floor(a.currentTime/60),s=Math.floor(a.currentTime%60).toString().padStart(2,'0');time.textContent=m+':'+s;}
+}
+
+function seekAudio(e,key){
+  const a=getAudio(key);if(!a||!a.duration)return;
+  const rect=e.currentTarget.getBoundingClientRect();
+  const pct=(e.clientX-rect.left)/rect.width;
+  a.currentTime=Math.max(0,Math.min(1,pct))*a.duration;
+}
+
+function toggleTranscript(id){
+  const el=document.getElementById(id);
+  const btn=document.querySelector(`[aria-controls="${id}"]`);
+  if(!el)return;
+  const open=el.style.display==='block';
+  el.style.display=open?'none':'block';
+  if(btn){btn.textContent=open?'Show transcript':'Hide transcript';btn.setAttribute('aria-expanded',!open);}
+}
+
+function announce(msg){
+  const r=document.getElementById('live-region');
+  if(r){r.textContent='';setTimeout(()=>r.textContent=msg,50);}
+}
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el=document.getElementById(id);
+  if(el){el.classList.add('active');const first=el.querySelector('button,[tabindex="0"]');if(first)setTimeout(()=>first.focus(),100);}
+}
+
+function showHub(){
+  stopAllAudio('');
+  updateHub();
+  show('screen-hub');
+  if(TEAM_KEYS.every(c=>completed[c])){setTimeout(()=>{show('screen-exit');announce('Simulation complete. All perspectives reviewed.');},400);}
+}
+
+function updateHub(){
+  const done=Object.keys(completed).length;
+  document.getElementById('prog').style.width=(done/TOTAL*100)+'%';
+  document.getElementById('prog-label').textContent=done+' of '+TOTAL+' perspectives completed';
+  TEAM_KEYS.forEach(c=>{
+    const card=document.getElementById('card-'+c);
+    if(!card)return;
+    if(completed[c]){
+      card.classList.add('done');
+      card.setAttribute('tabindex','-1');
+      card.setAttribute('aria-disabled','true');
+      if(!card.querySelector('.done-badge')){const b=document.createElement('div');b.className='done-badge';b.textContent='✓';b.setAttribute('aria-hidden','true');card.appendChild(b);}
+    }
+  });
+}
+
+function confirmReset(){ resetSim(); }
+
+function resetSim(){
+  completed={};q1Wrong=0;q2Wrong=0;activeKey=null;
+  Object.keys(audios).forEach(k=>{audios[k].pause();audios[k].currentTime=0;const b=btnFor(k);if(b)b.textContent='▶';});
+  TEAM_KEYS.forEach(c=>{
+    const card=document.getElementById('card-'+c);
+    if(card){card.classList.remove('done');card.setAttribute('tabindex','0');card.removeAttribute('aria-disabled');const b=card.querySelector('.done-badge');if(b)b.remove();}
+  });
+  document.getElementById('prog').style.width='0%';
+  document.getElementById('prog-label').textContent='0 of '+TOTAL+' perspectives completed';
+  show('screen-intro');
+  announce('Simulation reset. Starting over.');
+}
+
+function startChar(name){
+  if(completed[name])return;
+  currentChar=name;q1Wrong=0;q2Wrong=0;
+  if(audios['char_intro']){audios['char_intro'].pause();audios['char_intro'].currentTime=0;delete audios['char_intro'];}
+  const d=CHARS[name];
+  const panel=document.getElementById('ci-color-panel');
+  panel.style.background=d.bgDark;
+  const portrait=document.getElementById('ci-portrait');
+  portrait.src=PORTRAITS[name];portrait.alt=name.charAt(0).toUpperCase()+name.slice(1);
+  portrait.style.display='block';
+  document.getElementById('ci-portrait-ph').style.display='none';
+  document.getElementById('ci-portrait-ph').textContent=(byKey[name].initials||name.slice(0,2).toUpperCase());
+  document.getElementById('ci-name-large').textContent=byKey[name].name;
+  document.getElementById('ci-role-large').textContent=d.intro.role;
+  document.getElementById('ci-bar').style.borderColor=d.color;
+  document.getElementById('ci-play-btn').style.background=d.color;
+  document.getElementById('fill-char_intro').style.background=d.color;
+  document.getElementById('ci-play-btn').textContent='▶';
+  document.getElementById('ci-play-btn').disabled=false;
+  document.getElementById('fill-char_intro').style.width='0%';
+  document.getElementById('time-char_intro').textContent='0:00';
+  document.getElementById('err-char_intro').style.display='none';
+  document.getElementById('ci-role-label').textContent=d.intro.role;
+  document.getElementById('ci-intro-text').textContent=d.intro.text;
+  document.getElementById('tr-char').textContent=TRANSCRIPTS[name]||'';
+  document.getElementById('tr-char').style.display='none';
+  const tcBtn=document.getElementById('ci-transcript-btn');
+  if(tcBtn){tcBtn.textContent='Show transcript';tcBtn.setAttribute('aria-expanded','false');}
+  show('screen-char-intro');
+  announce(byKey[name].name+' — '+d.intro.role);
+}
+
+function goToQ1(){stopAllAudio('');renderQ1();show('screen-q1');announce('Question 1 of 2');}
+
+function playSceneVideo(vidEl,imgEl,src){
+  if(!vidEl)return;
+  vidEl.muted=true;vidEl.loop=true;vidEl.playsInline=true;
+  const fail=()=>{vidEl.style.display='none';if(imgEl){imgEl.src=SCENE_IMG;imgEl.style.display='block';}};
+  vidEl.onerror=fail;
+  vidEl.style.display='block';
+  const go=()=>vidEl.play().catch(()=>{});
+  if(SCENE_BLOB[src]){vidEl.src=SCENE_BLOB[src];vidEl.dataset.loadedSrc=src;go();return;}
+  fetch(src).then(r=>{if(!r.ok)throw 0;return r.blob();}).then(b=>{
+    if(!SCENE_BLOB[src])SCENE_BLOB[src]=URL.createObjectURL(b);
+    vidEl.src=SCENE_BLOB[src];vidEl.dataset.loadedSrc=src;go();
+  }).catch(fail);
+}
+
+function setSceneImg(qNum,name,isColor){
+  const sceneEl=document.getElementById(`q${qNum}-scene-img`);
+  const vidEl=document.getElementById(`q${qNum}-scene-vid`);
+  const colorEl=document.getElementById(`q${qNum}-color-panel`);
+  const portEl=document.getElementById(`q${qNum}-portrait`);
+  const nameEl=document.getElementById(`q${qNum}-char-name`);
+  const d=CHARS[name];
+  const sc=isColor?{}:sceneFor(name,qNum);
+  const hasVid=!!sc.video;
+  const hasImg=!!sc.img;
+  if(hasVid){
+    playSceneVideo(vidEl,sceneEl,sc.video);
+    sceneEl.style.display='none';
+    if(colorEl)colorEl.style.display='none';
+  } else if(hasImg){
+    sceneEl.src=sc.img;sceneEl.style.display='block';sceneEl.style.objectPosition=sc.pos||'center';
+    if(vidEl){vidEl.pause();vidEl.style.display='none';}
+    if(colorEl)colorEl.style.display='none';
+  } else {
+    sceneEl.style.display='none';
+    if(vidEl){vidEl.pause();vidEl.style.display='none';}
+    if(colorEl){colorEl.style.display='flex';colorEl.style.background=d.bgDark;}
+    if(portEl){portEl.src=PORTRAITS[name];portEl.alt=name;}
+    if(nameEl)nameEl.textContent=byKey[name].name;
+  }
+  const fbSceneEl=document.getElementById(`fb${qNum}-scene-img`);
+  const fbVidEl=document.getElementById(`fb${qNum}-scene-vid`);
+  const fbColorEl=document.getElementById(`fb${qNum}-color`);
+  const fbPortEl=document.getElementById(`fb${qNum}-portrait`);
+  if(hasVid){
+    playSceneVideo(fbVidEl,fbSceneEl,sc.video);
+    if(fbSceneEl)fbSceneEl.style.display='none';
+    if(fbColorEl)fbColorEl.style.display='none';
+  } else if(hasImg){
+    if(fbSceneEl){fbSceneEl.src=sc.img;fbSceneEl.style.display='block';fbSceneEl.style.objectPosition=sc.pos||'center';}
+    if(fbVidEl){fbVidEl.pause();fbVidEl.style.display='none';}
+    if(fbColorEl)fbColorEl.style.display='none';
+  } else {
+    if(fbSceneEl)fbSceneEl.style.display='none';
+    if(fbVidEl){fbVidEl.pause();fbVidEl.style.display='none';}
+    if(fbColorEl){fbColorEl.style.display='flex';fbColorEl.style.background=d.bgDark;}
+    if(fbPortEl){fbPortEl.src=PORTRAITS[name];fbPortEl.alt=name;}
+  }
+}
+
+function renderQ1(){
+  const d=CHARS[currentChar].q1;
+  setSceneImg(1,currentChar,false);
+  document.getElementById('q1-bubble').textContent=d.bubble;
+  document.getElementById('q1-ctx').textContent=d.ctx;
+  document.getElementById('q1-text').textContent=d.q;
+  const fam=document.getElementById('q1-family');
+  if(d.family){fam.style.display='block';document.getElementById('q1-family-text').textContent=d.familyText;}
+  else fam.style.display='none';
+  renderChoices('q1-choices',d.choices,handleQ1);
+}
+
+function renderQ2(){
+  const d=CHARS[currentChar].q2;
+  setSceneImg(2,currentChar,false);
+  document.getElementById('q2-bubble').textContent=d.bubble;
+  document.getElementById('q2-ctx').textContent=d.ctx;
+  document.getElementById('q2-text').textContent=d.q;
+  const fam=document.getElementById('q2-family');
+  if(d.family){fam.style.display='block';document.getElementById('q2-family-text').textContent=d.familyText;}
+  else fam.style.display='none';
+  renderChoices('q2-choices',d.choices,handleQ2);
+}
+
+function renderChoices(id,choices,handler){
+  const el=document.getElementById(id);el.innerHTML='';
+  choices.forEach((ch,i)=>{
+    const btn=document.createElement('button');
+    btn.className='choice-btn';
+    btn.setAttribute('aria-label','Option '+(i+1)+': '+ch.text);
+    btn.innerHTML='<div class="cbullet" aria-hidden="true"></div><span class="ctext">'+esc(ch.text)+'</span>';
+    btn.onclick=()=>{
+      [...el.querySelectorAll('.choice-btn')].forEach(b=>b.classList.remove('selected'));
+      btn.classList.add('selected');
+      setTimeout(()=>handler(ch),220);
+    };
+    el.appendChild(btn);
+  });
+}
+
+function handleQ1(ch){
+  const chosen=document.getElementById('fb1-chosen');
+  chosen.textContent=ch.text;
+  chosen.classList.toggle('correct',!!ch.correct);
+  chosen.classList.toggle('wrong',!ch.correct);
+  document.getElementById('fb1-text').textContent=ch.feedback;
+  const conseq=document.getElementById('fb1-consequence');
+  const averyEl=document.getElementById('fb1-avery');
+  const takeEl=document.getElementById('fb1-takeaway');
+  const actions=document.getElementById('fb1-actions');
+  conseq.style.display='none';averyEl.style.display='none';takeEl.style.display='none';actions.innerHTML='';
+  if(ch.correct){
+    takeEl.textContent=ch.takeaway||'';takeEl.style.display='block';
+    addBtn(actions,'Continue to Question 2 →',()=>{renderQ2();show('screen-q2');announce('Question 2 of 2');});
+    addBtn(actions,'Return to team hub',showHub);
+    announce('Correct. '+ch.feedback);
+  } else {
+    q1Wrong++;
+    if(ch.consequence){conseq.style.display='block';document.getElementById('fb1-consequence-text').textContent=ch.consequence;}
+    if(q1Wrong>=2&&ch.avery){averyEl.style.display='block';document.getElementById('fb1-avery-text').textContent=ch.avery;}
+    addBtn(actions,'Try again',()=>{renderQ1();show('screen-q1');});
+    addBtn(actions,'Skip to Question 2',()=>{renderQ2();show('screen-q2');announce('Question 2 of 2');});
+    addBtn(actions,'Return to team hub',showHub);
+    announce('Not quite. '+ch.feedback);
+  }
+  show('screen-fb1');
+}
+
+function handleQ2(ch){
+  const chosen=document.getElementById('fb2-chosen');
+  chosen.textContent=ch.text;
+  chosen.classList.toggle('correct',!!ch.correct);
+  chosen.classList.toggle('wrong',!ch.correct);
+  document.getElementById('fb2-text').textContent=ch.feedback;
+  const conseq=document.getElementById('fb2-consequence');
+  const averyEl=document.getElementById('fb2-avery');
+  const takeEl=document.getElementById('fb2-takeaway');
+  const actions=document.getElementById('fb2-actions');
+  conseq.style.display='none';averyEl.style.display='none';takeEl.style.display='none';actions.innerHTML='';
+  if(ch.correct){
+    takeEl.textContent=ch.takeaway||'';takeEl.style.display='block';
+    completed[currentChar]=true;updateHub();
+    addBtn(actions,'Return to team hub',showHub);
+    announce('Correct. '+ch.feedback+' Perspective complete.');
+  } else {
+    q2Wrong++;
+    if(ch.consequence){conseq.style.display='block';document.getElementById('fb2-consequence-text').textContent=ch.consequence;}
+    if(q2Wrong>=2&&ch.avery){averyEl.style.display='block';document.getElementById('fb2-avery-text').textContent=ch.avery;}
+    addBtn(actions,'Try again',()=>{renderQ2();show('screen-q2');});
+    addBtn(actions,'Return to team hub',showHub);
+    announce('Not quite. '+ch.feedback);
+  }
+  show('screen-fb2');
+}
+
+function addBtn(container,label,fn){
+  const btn=document.createElement('button');
+  btn.className='fb-btn';
+  btn.innerHTML='<div class="fbullet" aria-hidden="true"></div><span class="fb-btn-text">'+esc(label)+'</span>';
+  btn.onclick=fn;container.appendChild(btn);
+}
+
+boot();   // populate screens from TABLE
+// No autoplay on load: narration starts only when the learner presses play.
+</script>
+</body>
+</html>
